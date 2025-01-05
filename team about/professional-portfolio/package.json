@@ -1,0 +1,23 @@
+{
+  "name": "professional-portfolio",
+  "version": "1.0.0",
+  "description": "A professional portfolio showcasing projects and skills.",
+  "main": "src/index.html",
+  "scripts": {
+    "start": "live-server src",
+    "build": "echo 'Build step not defined'",
+    "test": "echo 'No tests defined'"
+  },
+  "keywords": [
+    "portfolio",
+    "web",
+    "projects",
+    "skills"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}
