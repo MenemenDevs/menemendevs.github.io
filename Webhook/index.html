@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Message Sender</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background: #36393f;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #2f3136;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #7289da;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #b9bbbe;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #202225;
+            border-radius: 4px;
+            background: #40444b;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #startBtn {
+            background: #7289da;
+            color: white;
+        }
+
+        #stopBtn {
+            background: #ed4245;
+            color: white;
+            display: none;
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+
+        .success {
+            background: #43b581;
+            color: white;
+        }
+
+        .error {
+            background: #ed4245;
+            color: white;
+        }
+
+        #counter {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #7289da;
+        }
+
+        .help-text {
+            color: #b9bbbe;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Discord Message Sender</h1>
+        
+        <div class="input-group">
+            <label for="webhook">Webhook URL:</label>
+            <input type="text" id="webhook" placeholder="https://discord.com/api/webhooks/...">
+            <div class="help-text">Make sure to use the full webhook URL from Discord</div>
+        </div>
+
+        <div class="input-group">
+            <label for="message">Message:</label>
+            <input type="text" id="message" placeholder="Enter your message">
+        </div>
+
+        <div class="input-group">
+            <label for="threads">Number of Threads:</label>
+            <input type="number" id="threads" min="1" max="100" value="1">
+        </div>
+
+        <button id="startBtn">Start Sending</button>
+        <button id="stopBtn">Stop Sending</button>
+
+        <div id="counter">Messages Sent: 0</div>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let messagesSent = 0;
+        let intervals = [];
+
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = isError ? 'error' : 'success';
+        }
+
+        function validateWebhook(url) {
+            return url.startsWith('https://discord.com/api/webhooks/') || 
+                   url.startsWith('https://discordapp.com/api/webhooks/');
+        }
+
+        async function sendMessage(webhook, message) {
+            try {
+                if (!validateWebhook(webhook)) {
+                    throw new Error('Invalid webhook URL. Make sure it starts with https://discord.com/api/webhooks/');
+                }
+
+                const response = await fetch(webhook, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: message
+                    })
+                });
+
+                if (response.status === 429) {
+                    const data = await response.json();
+                    throw new Error(`Rate limited! Please wait ${data.retry_after} seconds`);
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+                }
+
+                messagesSent++;
+                document.getElementById('counter').textContent = `Messages Sent: ${messagesSent}`;
+                showStatus('Message sent successfully');
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(error.message, true);
+                if (error.message.includes('Rate limited')) {
+                    isRunning = false;
+                    intervals.forEach(interval => clearInterval(interval));
+                    intervals = [];
+                    document.getElementById('startBtn').style.display = 'block';
+                    document.getElementById('stopBtn').style.display = 'none';
+                }
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            const webhook = document.getElementById('webhook').value.trim();
+            const message = document.getElementById('message').value;
+            const threads = parseInt(document.getElementById('threads').value);
+
+            if (!webhook || !message) {
+                showStatus('Please fill in all fields', true);
+                return;
+            }
+
+            isRunning = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'block';
+            
+            for (let i = 0; i < threads; i++) {
+                const interval = setInterval(() => {
+                    if (isRunning) {
+                        sendMessage(webhook, message);
+                    }
+                }, 1000 + (i * 100)); // Stagger the threads slightly
+                intervals.push(interval);
+            }
+
+            showStatus('Started sending messages');
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            isRunning = false;
+            intervals.forEach(interval => clearInterval(interval));
+            intervals = [];
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+            showStatus('Stopped sending messages');
+        });
+    </script>
+</body>
+</html>
