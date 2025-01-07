@@ -18,16 +18,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const portfolioItems = [
         {
             title: 'Project 1',
-            description: 'Description of project 1.',
-            link: '#'
+            description: 'This is the first project description.',
+            link: 'https://www.example.com'
         },
         {
             title: 'Project 2',
-            description: 'Description of project 2.',
-            link: '#'
+            description: 'This is the second project description.',
+            link: 'https://www.example.com'
+        },
+        {
+            title: 'Project 3',
+            description: 'This is the third project description.',
+            link: 'https://www.example.com'
         }
-        // Add more projects as needed
-    ];
+    ]
 
     portfolioItems.forEach(item => {
         const itemElement = document.createElement('div');
