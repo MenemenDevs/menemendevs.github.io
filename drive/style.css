@@ -1,0 +1,45 @@
+/* Copyright (c) 2024 by Tom Miller (https://codepen.io/creativeocean/pen/ByBogvj) */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
+
+html, body {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+  background:#000;
+  overflow:hidden;
+}
+
+body, pov {
+  width:100%;
+  height:100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.die {
+  width: 400px;
+  height: 55px;
+  padding-bottom: 9px;
+  perspective: 999px;
+}
+
+.cube {
+  position: absolute;
+  width:100%;;
+  height:100%;
+  transform-style: preserve-3d;
+}
+
+.face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+/*   letter-spacing:-1px; */
+  backface-visibility: hidden;
+/*   overflow:hidden; */
+}
